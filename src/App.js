@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Route, Routes } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import RecipeCard from './components/RecipeCard';
 import RecipeDetail from './components/RecipeDetail';
@@ -15,16 +15,7 @@ function App() {
   const [maxTime, setMaxTime] = useState('');
   const [sortOrder, setSortOrder] = useState('title');
   const { user } = useAuth();
-  const location = useLocation();
-  const isRecipeDetailPage = location.pathname.startsWith('/recipe/');
-
-  useEffect(() => {
-    if (user) {
-      fetchRecipes();
-    }
-  }, [user, searchQuery, rating, maxTime, sortOrder]);
-
-  const fetchRecipes = async () => {
+  const fetchRecipes = useCallback(async () => {
     let query = supabase.from('Recipes').select('*');
 
     // Apply filters
@@ -39,7 +30,13 @@ function App() {
     } else {
       setRecipes(recipes);
     }
-  };
+  }, [searchQuery, rating, maxTime, sortOrder]); // Dependencies for useCallback
+
+  useEffect(() => {
+    if (user) {
+      fetchRecipes();
+    }
+  }, [user, fetchRecipes]);
 
   const handleSearchChange = (e) => setSearchQuery(e.target.value);
   const handleRatingChange = (e) => setRating(e.target.value);

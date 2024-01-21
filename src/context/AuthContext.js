@@ -23,19 +23,36 @@ export function AuthProvider({ children }) {
       authListener?.unsubscribe();
     };
   }, []);
-
-  const signIn = async () => {
-    const { user, error } = await supabase.auth.signInWithOAuth({
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
     });
+    if (error) console.error('Error signing in with Google:', error);
+  };
 
-    if (error) console.error('Error signing in:', error);
+  const signInWithEmail = async (email, password) => {
+    const { user, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) console.error('Error signing in with email:', error);
+    else setUser(user);
+    
+  };
+    const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Error signing out:', error);
+    else setUser(null);
+  };
+  const signUpWithEmail = async (email, password) => {
+    const { user, error } = await supabase.auth.signUp({ email, password });
+    if (error) console.error('Error signing up:', error);
     else setUser(user);
   };
 
   const value = {
     user,
-    signIn,
+    signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail, // New function added here
+    signOut
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
